@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.4 – 2026-11-19
 
 ### Changed
 - `Grid.filter()` reads all card positions before starting animations instead of forcing a layout per card, so filtering large grids is several times faster. (#32)
