@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 – 2026-11-19
+
+### Changes
+- Download button navigates away for files on another domain (#43)
+- Gallery is blank after the first slide on right-to-left pages (#42)
+
 ## 1.1.0 – 2026-11-19
 
 ### Changes
