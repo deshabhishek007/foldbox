@@ -25,6 +25,7 @@
 		className: '',
 		counter: true,
 		captions: true,
+		htmlCaptions: true, // false inserts captions as plain text. bind() defaults to false.
 		thumbnails: true,
 		hideThumbsInFullscreen: false,
 		zoom: true,
@@ -39,6 +40,7 @@
 		swipeToClose: true,
 		closeOnBackdrop: true,
 		youtubeNoCookie: true,
+		youtubeThumbnails: true, // Fetch the thumbnail from i.ytimg.com when no thumb/poster is given.
 		youtubeParams: { rel: 0 },
 		vimeoParams: {},
 		labels: {
@@ -125,6 +127,24 @@
 			.join( '&' );
 	}
 
+	/**
+	 * Return the URL if it is http(s) or blob (relative URLs included), else ''.
+	 *
+	 * @param {string} url URL to check.
+	 * @return {string} The URL or ''.
+	 */
+	function safeUrl( url ) {
+		if ( ! url ) {
+			return '';
+		}
+		try {
+			const protocol = new URL( url, document.baseURI ).protocol;
+			return protocol === 'http:' || protocol === 'https:' || protocol === 'blob:' ? url : '';
+		} catch ( e ) {
+			return '';
+		}
+	}
+
 	/* ------------------------------------------------------------------ */
 	/* Items                                                               */
 	/* ------------------------------------------------------------------ */
@@ -137,10 +157,11 @@
 	/**
 	 * Fill in the type of an item from its fields or URL.
 	 *
-	 * @param {Object} raw Item as given by the caller.
+	 * @param {Object} raw     Item as given by the caller.
+	 * @param {Object} options Lightbox options.
 	 * @return {Object} Normalised copy.
 	 */
-	function normalize( raw ) {
+	function normalize( raw, options ) {
 		const item = Object.assign( {}, typeof raw === 'string' ? { src: raw } : raw );
 		const src = item.src || '';
 		let m;
@@ -172,7 +193,10 @@
 			item.videoId = m[ 1 ];
 			item.hash = m[ 2 ] || '';
 		}
-		if ( ! item.thumb && item.type === 'youtube' && item.videoId ) {
+		if ( ! item.thumb && item.poster ) {
+			item.thumb = item.poster;
+		}
+		if ( ! item.thumb && item.type === 'youtube' && item.videoId && options.youtubeThumbnails ) {
 			item.thumb = 'https://i.ytimg.com/vi/' + item.videoId + '/hqdefault.jpg';
 		}
 		if ( ! item.thumb && item.type === 'image' ) {
@@ -200,7 +224,10 @@
 			DEFAULTS.labels,
 			( options && options.labels ) || {}
 		);
-		this.items = ( items || [] ).map( normalize );
+		const self = this;
+		this.items = ( items || [] ).map( function ( item ) {
+			return normalize( item, self.options );
+		} );
 		this.index = 0;
 		this.slides = [];
 		this.zoomState = { scale: 1, x: 0, y: 0 };
@@ -466,8 +493,11 @@
 					self.close();
 				}
 			} );
+			// Keep the zoom level (mobile address bars fire resize while panning);
+			// only keep the image inside the new stage size.
 			on( window, 'resize', function () {
-				self.resetZoom();
+				self.clampZoom();
+				self.applyZoom( false );
 			} );
 		},
 
@@ -578,7 +608,11 @@
 				.replace( '%2', String( count ) );
 
 			if ( o.captions && item.caption ) {
-				this.caption.innerHTML = item.caption;
+				if ( o.htmlCaptions ) {
+					this.caption.innerHTML = item.caption;
+				} else {
+					this.caption.textContent = item.caption;
+				}
 				this.caption.hidden = false;
 			} else {
 				this.caption.innerHTML = '';
@@ -593,7 +627,7 @@
 				this.buttons.zoom.hidden = item.type !== 'image';
 			}
 			if ( this.buttons.download ) {
-				const url = item.download === false ? '' : item.download || ( item.type === 'image' ? item.src : item.type === 'video' ? item.sources[ 0 ].src : '' );
+				const url = safeUrl( item.download === false ? '' : item.download || ( item.type === 'image' ? item.src : item.type === 'video' ? item.sources[ 0 ].src : '' ) );
 				this.buttons.download.hidden = ! url;
 				if ( url ) {
 					this.buttons.download.href = url;
@@ -977,6 +1011,18 @@
 				if ( this.pointers.size < 2 ) {
 					this.pinch = null;
 					this.gesture = null;
+					// Let the finger still down keep panning the zoomed image.
+					const rest = this.pointers.values().next().value;
+					if ( rest && this.zoomState.scale > 1 ) {
+						this.gesture = {
+							startX: rest.x,
+							startY: rest.y,
+							zoomX: this.zoomState.x,
+							zoomY: this.zoomState.y,
+							time: Date.now(),
+							axis: null,
+						};
+					}
 				}
 				return;
 			}
@@ -1297,6 +1343,15 @@
 					before.set( item, item.getBoundingClientRect() );
 				}
 			} );
+			// Positions above are where cards are on screen now. Stop animations
+			// from an earlier filter so the new layout is measured without them.
+			items.forEach( function ( item ) {
+				if ( typeof item.getAnimations === 'function' ) {
+					item.getAnimations().forEach( function ( animation ) {
+						animation.cancel();
+					} );
+				}
+			} );
 
 			const ghosts = [];
 			items.forEach( function ( item ) {
@@ -1382,7 +1437,8 @@
 		if ( ! rootEl ) {
 			return function () {};
 		}
-		const opts = Object.assign( { selector: 'a[href]' }, options || {} );
+		// Captions come from page markup here, so treat them as text unless asked.
+		const opts = Object.assign( { selector: 'a[href]', htmlCaptions: false }, options || {} );
 		const handler = function ( event ) {
 			const link = event.target.closest( opts.selector );
 			if ( ! link || ! rootEl.contains( link ) ) {

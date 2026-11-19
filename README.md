@@ -9,7 +9,7 @@ A lightweight lightbox and filterable grid for photos and videos. No dependencie
 - **Touch:** swipe between slides, swipe down to close.
 - **Opening effect:** the gallery grows out of the thumbnail you clicked.
 - **Accessible:** dialog semantics, focus trap, keyboard (arrows, Home, End, Esc), respects reduced motion.
-- **Privacy friendly:** YouTube and Vimeo players load only when the visitor presses play (YouTube uses `youtube-nocookie.com`).
+- **Privacy friendly:** YouTube and Vimeo players load only when the visitor presses play (YouTube uses `youtube-nocookie.com`). YouTube thumbnails without your own `thumb` or `poster` still come from `i.ytimg.com` when the gallery opens; set `youtubeThumbnails: false` to stop that.
 - **Filterable grid:** animate a grid between category filters (cards glide, fade and scale) with any CSS layout.
 
 About 10 KB minified and gzipped (JS + CSS).
@@ -56,6 +56,8 @@ Foldbox.open(
 
 Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data-download`.
 
+`bind()` shows `data-caption` as plain text, because it comes from page markup that other people (such as post authors) may control. Pass `htmlCaptions: true` only if you trust everyone who can edit that markup.
+
 ### Items
 
 | Field | Description |
@@ -63,10 +65,10 @@ Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data
 | `src` | Image URL, video file URL, YouTube or Vimeo URL. The type is detected from it. |
 | `type` | Optional: `image`, `video`, `youtube` or `vimeo`. |
 | `sources` | Video files as `[{ src, type }]`, for several formats. |
-| `thumb` | Thumbnail for the strip (YouTube thumbnails are filled in automatically). |
+| `thumb` | Thumbnail for the strip. Defaults to `poster`, and for YouTube to the video's thumbnail. |
 | `poster` | Poster image for videos. |
 | `alt` | Alternative text. |
-| `caption` | Caption HTML. It is inserted as HTML, so escape anything that comes from users. |
+| `caption` | Caption. Inserted as HTML unless `htmlCaptions` is `false`, so escape anything that comes from users. |
 | `srcset` | Optional responsive image candidates. |
 | `download` | Download URL, or `false` to hide the button for this item. |
 
@@ -82,6 +84,7 @@ Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data
 | `className` | `''` | Extra class on the lightbox. |
 | `counter` | `true` | Show "1 / 5". |
 | `captions` | `true` | Show captions. |
+| `htmlCaptions` | `true` | Insert captions as HTML. `false` shows them as plain text. `bind()` defaults to `false`. |
 | `thumbnails` | `true` | Show the thumbnail strip. |
 | `hideThumbsInFullscreen` | `false` | Hide the strip in fullscreen. |
 | `zoom` | `true` | Allow zooming images. |
@@ -90,12 +93,13 @@ Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data
 | `slideshow` | `true` | Show the slideshow button. |
 | `slideshowAutostart` | `false` | Start the slideshow on open. |
 | `slideshowInterval` | `5000` | Time per slide in ms. |
-| `download` | `false` | Show the download button. |
+| `download` | `false` | Show the download button. Only `http(s)` and `blob:` URLs are used. |
 | `keyboard` | `true` | Keyboard navigation. |
 | `swipe` | `true` | Swipe between slides. |
 | `swipeToClose` | `true` | Swipe down to close. |
 | `closeOnBackdrop` | `true` | Click outside the media to close. |
 | `youtubeNoCookie` | `true` | Use `youtube-nocookie.com`. |
+| `youtubeThumbnails` | `true` | Load YouTube thumbnails from `i.ytimg.com` for items without `thumb` or `poster`. |
 | `youtubeParams` | `{ rel: 0 }` | Extra YouTube player parameters. |
 | `vimeoParams` | `{}` | Extra Vimeo player parameters. |
 | `labels` | English | Texts for translation, e.g. `{ close: 'Fermer', counter: '%1 sur %2' }`. |
