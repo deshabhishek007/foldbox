@@ -195,6 +195,16 @@
 	transition: transform 0.3s var(--foldbox-ease);
 }
 
+/*
+ * Slides and thumbnails always run left to right, so the -index * 100%
+ * translate in the JS shows the right slide on dir="rtl" pages too. Captions
+ * and the toolbar keep the page's direction.
+ */
+.foldbox__track,
+.foldbox__thumbs {
+	direction: ltr;
+}
+
 .foldbox__track {
 	display: flex;
 	height: 100%;

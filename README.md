@@ -94,7 +94,7 @@ Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data
 | `slideshow` | `true` | Show the slideshow button. |
 | `slideshowAutostart` | `false` | Start the slideshow on open. |
 | `slideshowInterval` | `5000` | Time per slide in ms. |
-| `download` | `false` | Show the download button. Only `http(s)` and `blob:` URLs are used. |
+| `download` | `false` | Show the download button. Only `http(s)` and `blob:` URLs are used. Browsers only download files from the page's own domain; files on another domain (such as a CDN) open in a new tab. |
 | `keyboard` | `true` | Arrow, Home and End navigation. Escape always closes. |
 | `swipe` | `true` | Swipe between slides. |
 | `swipeToClose` | `true` | Swipe down to close. |

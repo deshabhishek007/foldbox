@@ -655,6 +655,15 @@
 				this.buttons.download.hidden = ! url;
 				if ( url ) {
 					this.buttons.download.href = url;
+					// Browsers ignore `download` for other origins and would navigate
+					// the page to the file; open those in a new tab instead.
+					if ( new URL( url, document.baseURI ).origin !== window.location.origin ) {
+						this.buttons.download.target = '_blank';
+						this.buttons.download.rel = 'noopener';
+					} else {
+						this.buttons.download.removeAttribute( 'target' );
+						this.buttons.download.removeAttribute( 'rel' );
+					}
 				} else {
 					this.buttons.download.removeAttribute( 'href' );
 				}

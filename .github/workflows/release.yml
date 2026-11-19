@@ -42,10 +42,26 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      # Install scripts aren't needed for the build, and this job holds a write token.
+      - run: npm ci --ignore-scripts
+
+      # A run waits in the concurrency queue while an earlier one releases, so
+      # main may have moved since the commit that triggered this run. Release
+      # from the latest main; if its tip is already a release, the earlier run
+      # included this change and there is nothing left to do.
+      - name: Sync with the latest main
+        id: sync
+        run: |
+          git fetch origin main
+          git checkout -B main origin/main
+          if git log -1 --format=%s | grep -q '^Release v'; then
+            echo "Latest main is already a release; nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Choose the version bump
         id: bump
+        if: steps.sync.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_BUMP: ${{ inputs.bump }}
@@ -62,22 +78,29 @@ jobs:
 
       - name: Bump version and update the changelog
         id: release
+        if: steps.sync.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: .github/scripts/release.sh "${{ steps.bump.outputs.bump }}"
 
-      - run: npm run build
+      - name: Build
+        if: steps.sync.outputs.skip != 'true'
+        run: npm run build
 
       - name: Commit, tag and push
+        if: steps.sync.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json src dist CHANGELOG.md
           git commit -m "Release ${{ steps.release.outputs.tag }}"
           git tag "${{ steps.release.outputs.tag }}"
-          git push origin HEAD:main "${{ steps.release.outputs.tag }}"
+          # Atomic: the branch and the tag land together or not at all, so a
+          # rejected push never leaves a stray tag behind.
+          git push --atomic origin HEAD:main "${{ steps.release.outputs.tag }}"
 
       - name: Publish the GitHub release
+        if: steps.sync.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
