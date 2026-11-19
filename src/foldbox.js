@@ -1418,6 +1418,16 @@
 				item.hidden = ! matches( item );
 			} );
 
+			// Read every new position before appending ghosts or starting any
+			// animation: each animate() call invalidates style, so reading in
+			// between would force a layout per card.
+			const after = new Map();
+			items.forEach( function ( item ) {
+				if ( ! item.hidden ) {
+					after.set( item, item.getBoundingClientRect() );
+				}
+			} );
+
 			ghosts.forEach( function ( ghost ) {
 				grid.appendChild( ghost );
 				ghost
@@ -1448,7 +1458,7 @@
 					);
 					return;
 				}
-				const now = item.getBoundingClientRect();
+				const now = after.get( item );
 				const dx = old.left - now.left;
 				const dy = old.top - now.top;
 				if ( dx || dy ) {
