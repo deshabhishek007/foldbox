@@ -237,6 +237,28 @@
 	max-height: calc(100vh - 140px);
 }
 
+/*
+ * Size media to the slide instead of guessing from 100vh, which is too tall
+ * while a mobile address bar is showing or when the caption is long. The vh
+ * rules above stay as the fallback for browsers without container units.
+ */
+@supports (height: 1cqh) {
+
+	.foldbox__slide {
+		container-type: size;
+	}
+
+	.foldbox .foldbox__slide .foldbox__img {
+		max-height: 100cqh;
+	}
+
+	.foldbox .foldbox__slide .foldbox__video,
+	.foldbox .foldbox__slide .foldbox__embed,
+	.foldbox .foldbox__slide .foldbox__play {
+		width: min(100%, 100cqh * 16 / 9);
+	}
+}
+
 .foldbox.is-zoomed .foldbox__img {
 	cursor: grab;
 }
