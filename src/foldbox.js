@@ -22,6 +22,7 @@
 		animation: 'slide', // 'slide' or 'fade'.
 		speed: 400,
 		origin: null, // Element the gallery opens from (zoom-in effect).
+		theme: 'dark', // 'dark', 'light' or 'auto' (follows the system setting).
 		className: '',
 		counter: true,
 		captions: true,
@@ -296,6 +297,9 @@
 				'aria-label': L.dialog,
 				tabindex: '-1',
 			} );
+			if ( o.theme === 'light' || o.theme === 'auto' ) {
+				root.classList.add( 'foldbox--' + o.theme );
+			}
 			if ( o.className ) {
 				root.className += ' ' + o.className;
 			}

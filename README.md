@@ -81,6 +81,7 @@ Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data
 | `animation` | `'slide'` | `'slide'` or `'fade'`. |
 | `speed` | `400` | Transition time in ms. |
 | `origin` | `null` | Element the gallery grows out of. |
+| `theme` | `'dark'` | `'dark'`, `'light'`, or `'auto'` to follow the visitor's system setting. See [Themes](#themes). |
 | `className` | `''` | Extra class on the lightbox. |
 | `counter` | `true` | Show "1 / 5". |
 | `captions` | `true` | Show captions. |
@@ -107,9 +108,18 @@ Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data
 
 The object returned by `Foldbox.open()` has `next()`, `prev()`, `goTo( i )`, `play()`, `pause()`, `toggleZoom()`, `toggleFullscreen()` and `close()`. `Foldbox.close()` closes whichever gallery is open.
 
+### Themes
+
+The gallery is dark by default. Pick another built-in theme with the `theme` option:
+
+```js
+Foldbox.open( items, { theme: 'light' } ); // 'dark' (default), 'light', or 'auto'
+Foldbox.bind( '#gallery', { theme: 'auto' } ); // follows the visitor's light/dark system setting
+```
+
 ### Styling
 
-Change the look with CSS custom properties on `.foldbox`:
+Change the look, or make your own theme, with CSS custom properties on `.foldbox`:
 
 ```css
 .foldbox {
@@ -119,6 +129,31 @@ Change the look with CSS custom properties on `.foldbox`:
 	--foldbox-top: 32px; /* e.g. leave room for a fixed header */
 	--foldbox-z: 99999;
 }
+```
+
+| Property | Used for |
+|---|---|
+| `--foldbox-bg` | Backdrop |
+| `--foldbox-color` | Text and icons |
+| `--foldbox-muted` | Counter, captions, error text |
+| `--foldbox-accent` | Focus ring, slideshow progress, active thumbnail, spinner |
+| `--foldbox-btn-bg`, `--foldbox-btn-hover` | Toolbar and arrow buttons |
+| `--foldbox-thumb-bg` | Thumbnail placeholder |
+| `--foldbox-spinner-track` | Loading spinner track |
+
+For a named theme of your own, put the properties on a class and pass it with `className`:
+
+```css
+.foldbox.my-sepia {
+	--foldbox-bg: rgba(40, 30, 20, 0.96);
+	--foldbox-color: #f4e9d8;
+	--foldbox-muted: rgba(244, 233, 216, 0.7);
+	--foldbox-accent: #e0b872;
+}
+```
+
+```js
+Foldbox.open( items, { className: 'my-sepia' } );
 ```
 
 ## Filterable grid
