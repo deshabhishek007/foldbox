@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 – 2026-11-19
+
+### Changes
+- PRs should not commit dist/ or CHANGELOG.md (#38)
+- Built-in light and auto (system) themes (#36)
+
 ## 1.0.4 – 2026-11-19
 
 ### Changed
