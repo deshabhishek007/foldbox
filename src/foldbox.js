@@ -1087,21 +1087,18 @@
 				this.trapFocus( event );
 				return;
 			}
-			if ( ! this.options.keyboard ) {
+			// Leave arrow, Home and End keys to a focused video (seeking).
+			if ( ! this.options.keyboard || event.target.closest( 'video' ) ) {
 				return;
 			}
 			switch ( event.key ) {
 				case 'ArrowLeft':
-					if ( ! event.target.closest( 'video' ) ) {
-						event.preventDefault();
-						this.prev();
-					}
+					event.preventDefault();
+					this.prev();
 					break;
 				case 'ArrowRight':
-					if ( ! event.target.closest( 'video' ) ) {
-						event.preventDefault();
-						this.next();
-					}
+					event.preventDefault();
+					this.next();
 					break;
 				case 'Home':
 					event.preventDefault();

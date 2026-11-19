@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Images, videos and video posters are sized to their slide, so they are no longer cut off while a phone's address bar is showing or when the caption is long. (#17)
+- Home and End in a focused video seek within the video instead of switching slides. (#18)
+
 ## 1.0.2 – 2026-11-20
 
 ### Changed
