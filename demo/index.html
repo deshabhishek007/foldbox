@@ -14,7 +14,9 @@
 		p.lead { margin: 0 0 24px; color: #555; }
 		.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 		.filters button { padding: 6px 16px; font: inherit; background: none; border: 1px solid #1e1e1e; border-radius: 999px; cursor: pointer; }
-		.filters button.is-active { color: #fff; background: #1e1e1e; }
+		.filters button.is-active,
+		.filters button[aria-pressed="true"] { color: #fff; background: #1e1e1e; }
+		.filters .label { align-self: center; margin-right: 4px; color: #555; }
 		.grid { display: flex; flex-wrap: wrap; margin: 0 -8px; }
 		.grid > .card { width: 33.333%; padding: 0 8px 16px; }
 		@media (max-width: 800px) { .grid > .card { width: 50%; } }
@@ -31,6 +33,13 @@
 <main>
 	<h1>Foldbox</h1>
 	<p class="lead">A lightbox and filterable grid for photos and videos. Click an album cover.</p>
+
+	<div class="filters" id="themes" role="group" aria-label="Gallery theme">
+		<span class="label">Gallery theme</span>
+		<button type="button" aria-pressed="true" data-theme="dark">Dark</button>
+		<button type="button" aria-pressed="false" data-theme="light">Light</button>
+		<button type="button" aria-pressed="false" data-theme="auto">Auto</button>
+	</div>
 
 	<div class="filters" id="filters">
 		<button type="button" class="is-active" data-filter="*">All</button>
@@ -73,6 +82,8 @@
 		{ title: 'Single photo', cat: 'nature', cover: 1025, items: [ photo( 1025, 'Pug' ) ] },
 	];
 
+	let theme = 'dark';
+
 	const grid = document.getElementById( 'grid' );
 	albums.forEach( function ( album ) {
 		const card = document.createElement( 'div' );
@@ -80,7 +91,7 @@
 		card.innerHTML = '<button type="button"><img src="https://picsum.photos/id/' + album.cover + '/600/400" alt=""><span></span></button>';
 		card.querySelector( 'span' ).textContent = album.title + ' (' + album.items.length + ')';
 		card.querySelector( 'button' ).addEventListener( 'click', function () {
-			Foldbox.open( album.items, { origin: card.querySelector( 'img' ), download: true } );
+			Foldbox.open( album.items, { origin: card.querySelector( 'img' ), download: true, theme: theme } );
 		} );
 		grid.appendChild( card );
 	} );
@@ -94,7 +105,18 @@
 		} );
 	} );
 
-	Foldbox.bind( '#links', { animation: 'fade' } );
+	// bind() reads its options once, so rebind when the theme changes.
+	let unbindLinks = Foldbox.bind( '#links', { animation: 'fade', theme: theme } );
+
+	const themeButtons = document.querySelectorAll( '#themes button' );
+	themeButtons.forEach( function ( btn ) {
+		btn.addEventListener( 'click', function () {
+			theme = btn.getAttribute( 'data-theme' );
+			themeButtons.forEach( function ( b ) { b.setAttribute( 'aria-pressed', b === btn ? 'true' : 'false' ); } );
+			unbindLinks();
+			unbindLinks = Foldbox.bind( '#links', { animation: 'fade', theme: theme } );
+		} );
+	} );
 </script>
 </body>
 </html>
