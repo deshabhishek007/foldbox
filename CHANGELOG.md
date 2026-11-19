@@ -5,6 +5,13 @@
 ### Fixed
 - Images, videos and video posters are sized to their slide, so they are no longer cut off while a phone's address bar is showing or when the caption is long. (#17)
 - Home and End in a focused video seek within the video instead of switching slides. (#18)
+- YouTube videos play on sites that send `Referrer-Policy: no-referrer` instead of showing Error 153. (#22)
+- Focus stays in the gallery when the slide holding it is left, and moves to the player when a video starts. (#23)
+- Arrow, Home and End keys with Alt, Ctrl or Cmd are left to the browser, so Back and Forward shortcuts work. (#24)
+- `data-download="false"` hides the download button for that link. (#25)
+- An unknown `type` or `data-type` falls back to detecting the type from the URL. (#26)
+- `src` can be a `URL` object. (#27)
+- Re-filtering the grid during a fade-out no longer shows cards twice. (#28)
 
 ## 1.0.2 – 2026-11-20
 

@@ -54,7 +54,7 @@ Foldbox.open(
 </script>
 ```
 
-Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data-download`.
+Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data-download` (a URL, or `false` to hide the button for that link).
 
 `bind()` shows `data-caption` as plain text, because it comes from page markup that other people (such as post authors) may control. Pass `htmlCaptions: true` only if you trust everyone who can edit that markup.
 
