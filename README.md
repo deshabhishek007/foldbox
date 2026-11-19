@@ -94,7 +94,7 @@ Link attributes: `data-thumb`, `data-caption`, `data-type`, `data-poster`, `data
 | `slideshowAutostart` | `false` | Start the slideshow on open. |
 | `slideshowInterval` | `5000` | Time per slide in ms. |
 | `download` | `false` | Show the download button. Only `http(s)` and `blob:` URLs are used. |
-| `keyboard` | `true` | Keyboard navigation. |
+| `keyboard` | `true` | Arrow, Home and End navigation. Escape always closes. |
 | `swipe` | `true` | Swipe between slides. |
 | `swipeToClose` | `true` | Swipe down to close. |
 | `closeOnBackdrop` | `true` | Click outside the media to close. |
