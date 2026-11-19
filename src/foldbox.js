@@ -166,6 +166,13 @@
 		const src = item.src || '';
 		let m;
 
+		// A youtube/vimeo type without a video ID can't be embedded; detect from the URL instead.
+		if (
+			( item.type === 'youtube' && ! item.videoId && ! YOUTUBE.test( src ) ) ||
+			( item.type === 'vimeo' && ! item.videoId && ! VIMEO.test( src ) )
+		) {
+			delete item.type;
+		}
 		if ( ! item.type ) {
 			if ( item.sources && item.sources.length ) {
 				item.type = 'video';
@@ -536,6 +543,8 @@
 				const active = i === index;
 				slide.classList.toggle( 'is-active', active );
 				slide.setAttribute( 'aria-hidden', active ? 'false' : 'true' );
+				// Keep controls in off-screen slides out of the tab order.
+				slide.inert = ! active;
 				if ( self.isNear( i ) ) {
 					self.load( i );
 				}
@@ -1065,14 +1074,23 @@
 		/* Keyboard ------------------------------------------------------ */
 
 		onKey( event ) {
-			if ( ! this.isOpen || ! this.options.keyboard ) {
+			if ( ! this.isOpen ) {
+				return;
+			}
+			// Escape and the focus trap always work; `keyboard` covers navigation.
+			if ( event.key === 'Escape' ) {
+				event.preventDefault();
+				this.close();
+				return;
+			}
+			if ( event.key === 'Tab' ) {
+				this.trapFocus( event );
+				return;
+			}
+			if ( ! this.options.keyboard ) {
 				return;
 			}
 			switch ( event.key ) {
-				case 'Escape':
-					event.preventDefault();
-					this.close();
-					break;
 				case 'ArrowLeft':
 					if ( ! event.target.closest( 'video' ) ) {
 						event.preventDefault();
@@ -1092,9 +1110,6 @@
 				case 'End':
 					event.preventDefault();
 					this.goTo( this.items.length - 1 );
-					break;
-				case 'Tab':
-					this.trapFocus( event );
 					break;
 			}
 		},
@@ -1361,6 +1376,7 @@
 				const rect = before.get( item );
 				const ghost = item.cloneNode( true );
 				ghost.setAttribute( 'aria-hidden', 'true' );
+				ghost.inert = true;
 				ghost.classList.add( 'foldbox-ghost' );
 				ghost.style.position = 'absolute';
 				ghost.style.margin = '0';
@@ -1440,6 +1456,10 @@
 		// Captions come from page markup here, so treat them as text unless asked.
 		const opts = Object.assign( { selector: 'a[href]', htmlCaptions: false }, options || {} );
 		const handler = function ( event ) {
+			// Leave new-tab/window clicks (Ctrl, Cmd, Shift, middle button) to the browser.
+			if ( event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey ) {
+				return;
+			}
 			const link = event.target.closest( opts.selector );
 			if ( ! link || ! rootEl.contains( link ) ) {
 				return;

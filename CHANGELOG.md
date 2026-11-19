@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Escape always closes the gallery and the focus trap always works; `keyboard: false` now turns off only arrow, Home and End navigation. (#12)
+
+### Fixed
+- Controls in off-screen slides are no longer reachable with Tab. (#9)
+- `Foldbox.bind()` leaves Ctrl, Cmd, Shift and Alt clicks to the browser, so links can open in a new tab. (#10)
+- Grid cards fading out can no longer take focus. (#11)
+- An item with `type: 'youtube'` or `'vimeo'` but no video ID falls back to type detection instead of embedding `/embed/undefined`. (#13)
+
 ## 1.0.1 – 2026-11-20
 
 ### Security
