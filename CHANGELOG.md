@@ -1,16 +1,26 @@
 # Changelog
 
+## 1.2.0 – 2026-11-21
+
+### Changes
+- Failed images keep a zoom button that does nothing and a download link to the broken file (#62)
+- Start times in YouTube and Vimeo links are dropped (#61)
+- Zoomed images can't be panned with the keyboard (#60)
+
 ## 1.1.2 – 2026-11-21
 
 ### Changes
-- Fix release race, skip install scripts, RTL slides, cross-origin downloads (#44)
-- Add light and auto themes (#37)
-- Batch position reads in Grid.filter() to avoid a layout per card (#33)
-- Fix YouTube Error 153, focus loss on slide change, modifier keys and more (#29)
-- Size media to the slide instead of 100vh; leave Home/End to a focused video (#21)
-- Fix focus in hidden slides, modifier clicks in bind(), and related a11y bugs (#16)
-- Fix caption XSS via bind(), unsafe download URLs, and gesture/grid bugs (#8)
-- Foldbox 1.0.0: lightbox and filterable grid for photos and videos
+- Play on the last slide with loop: false shows a slideshow that never moves (#58)
+- After one failed Foldbox.open(), every later open() throws until reload (#57)
+- Setting only some labels in Foldbox.defaults gives "undefined" labels or stops galleries opening (#56)
+- Docs: heading anchors add "#" to every heading's accessible name (#54)
+- Website: theme toggle's aria-pressed is stale when the system theme changes (#53)
+- Docs: video keys and modifier keys missing from Keyboard and touch (#52)
+- Docs: swipe directions are reversed in Keyboard and touch (#51)
+- Website: home page loads a YouTube thumbnail from i.ytimg.com on every visit (#50)
+- Website demos ignore the page's dark mode switch (#48)
+- Publish a GitHub Pages site with demos and documentation (#46)
+- Improve the README (#45)
 
 ## 1.1.1 – 2026-11-19
 

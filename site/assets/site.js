@@ -39,19 +39,24 @@
 
 	window.FoldboxSite = { isDark, lightboxTheme };
 
-	document.querySelectorAll( '.theme-toggle' ).forEach( function ( btn ) {
-		const sync = function () {
+	const toggles = document.querySelectorAll( '.theme-toggle' );
+	const syncToggles = function () {
+		toggles.forEach( function ( btn ) {
 			btn.setAttribute( 'aria-pressed', isDark() ? 'true' : 'false' );
-		};
-		sync();
+		} );
+	};
+	syncToggles();
+	toggles.forEach( function ( btn ) {
 		btn.addEventListener( 'click', function () {
 			const next = isDark() ? 'light' : 'dark';
 			root.setAttribute( 'data-theme', next );
 			store.set( 'foldbox-site-theme', next );
-			sync();
+			syncToggles();
 			document.dispatchEvent( new CustomEvent( 'foldbox-site-theme' ) );
 		} );
 	} );
+	// Without a saved choice the page follows the system setting; keep the button's state in step.
+	window.matchMedia( '(prefers-color-scheme: dark)' ).addEventListener( 'change', syncToggles );
 
 	/* Library version. */
 	if ( window.Foldbox ) {
@@ -226,7 +231,10 @@
 			const a = document.createElement( 'a' );
 			a.className = 'anchor';
 			a.href = '#' + h.id;
-			a.setAttribute( 'aria-label', 'Link to this section' );
+			// A visual extra: kept out of the heading's accessible name and the tab
+			// order (the table of contents links every section).
+			a.setAttribute( 'aria-hidden', 'true' );
+			a.tabIndex = -1;
 			a.textContent = '#';
 			h.appendChild( a );
 		} );
