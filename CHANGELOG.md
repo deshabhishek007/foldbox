@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.2 – 2026-11-21
+
+### Changes
+- Play on the last slide with loop: false shows a slideshow that never moves (#58)
+- After one failed Foldbox.open(), every later open() throws until reload (#57)
+- Setting only some labels in Foldbox.defaults gives "undefined" labels or stops galleries opening (#56)
+- Docs: heading anchors add "#" to every heading's accessible name (#54)
+- Website: theme toggle's aria-pressed is stale when the system theme changes (#53)
+- Docs: video keys and modifier keys missing from Keyboard and touch (#52)
+- Docs: swipe directions are reversed in Keyboard and touch (#51)
+- Website: home page loads a YouTube thumbnail from i.ytimg.com on every visit (#50)
+- Website demos ignore the page's dark mode switch (#48)
+- Publish a GitHub Pages site with demos and documentation (#46)
+- Improve the README (#45)
+
 ## 1.1.1 – 2026-11-19
 
 ### Changes
