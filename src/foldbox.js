@@ -160,6 +160,17 @@
 	const VIDEO_FILE = /\.(mp4|webm|ogv|mov|m4v)(?:[?#]|$)/i;
 
 	/**
+	 * Seconds from a video link's time: '90', '90s', '1m30s' or '1h2m3s'.
+	 *
+	 * @param {string} value Time from the link.
+	 * @return {number} Seconds, or 0 if not understood.
+	 */
+	function seconds( value ) {
+		const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/.exec( value );
+		return m ? ( Number( m[ 1 ] ) || 0 ) * 3600 + ( Number( m[ 2 ] ) || 0 ) * 60 + ( Number( m[ 3 ] ) || 0 ) : 0;
+	}
+
+	/**
 	 * Fill in the type of an item from its fields or URL.
 	 *
 	 * @param {Object} raw     Item as given by the caller.
@@ -209,6 +220,13 @@
 		if ( item.type === 'vimeo' && ! item.videoId && ( m = src.match( VIMEO ) ) ) {
 			item.videoId = m[ 1 ];
 			item.hash = m[ 2 ] || '';
+		}
+		// Start time from the link: ?t=90, &t=1m30s, ?start=90 or Vimeo's #t=90s.
+		if ( item.type === 'youtube' || item.type === 'vimeo' ) {
+			if ( ! item.start && ( m = src.match( /[?&#](?:t|start)=([\dhms]+)/ ) ) ) {
+				item.start = seconds( m[ 1 ] );
+			}
+			item.start = Math.max( 0, Math.floor( Number( item.start ) || 0 ) );
 		}
 		if ( ! item.thumb && item.poster ) {
 			item.thumb = item.poster;
@@ -668,11 +686,14 @@
 				this.buttons.prev.disabled = ! o.loop && this.index === 0;
 				this.buttons.next.disabled = ! o.loop && this.index === count - 1;
 			}
+			// An image that failed to load has nothing to zoom, and its own URL is
+			// not worth downloading (an explicit `download` URL still is).
+			const failed = this.slides[ this.index ].classList.contains( 'has-error' );
 			if ( this.buttons.zoom ) {
-				this.buttons.zoom.hidden = item.type !== 'image';
+				this.buttons.zoom.hidden = item.type !== 'image' || failed;
 			}
 			if ( this.buttons.download ) {
-				const url = safeUrl( item.download === false ? '' : item.download || ( item.type === 'image' ? item.src : item.type === 'video' ? item.sources[ 0 ].src : '' ) );
+				const url = safeUrl( item.download === false ? '' : item.download || ( failed ? '' : item.type === 'image' ? item.src : item.type === 'video' ? item.sources[ 0 ].src : '' ) );
 				this.buttons.download.hidden = ! url;
 				if ( url ) {
 					this.buttons.download.href = url;
@@ -728,10 +749,14 @@
 				img.addEventListener( 'load', function () {
 					slide.classList.remove( 'is-loading' );
 				} );
+				const self = this;
 				img.addEventListener( 'error', function () {
 					slide.classList.remove( 'is-loading' );
 					slide.classList.add( 'has-error' );
 					wrap.textContent = L.error;
+					if ( i === self.index && self.isOpen ) {
+						self.updateUi(); // Hide the zoom and download buttons.
+					}
 				} );
 				if ( item.srcset ) {
 					img.srcset = item.srcset;
@@ -789,13 +814,14 @@
 			const o = this.options;
 			if ( item.type === 'youtube' ) {
 				const host = o.youtubeNoCookie ? 'https://www.youtube-nocookie.com' : 'https://www.youtube.com';
-				return host + '/embed/' + encodeURIComponent( item.videoId ) + '?' + query( Object.assign( { autoplay: 1, playsinline: 1 }, o.youtubeParams ) );
+				const start = item.start ? { start: item.start } : {};
+				return host + '/embed/' + encodeURIComponent( item.videoId ) + '?' + query( Object.assign( { autoplay: 1, playsinline: 1 }, start, o.youtubeParams ) );
 			}
 			const params = Object.assign( { autoplay: 1 }, o.vimeoParams );
 			if ( item.hash ) {
 				params.h = item.hash;
 			}
-			return 'https://player.vimeo.com/video/' + encodeURIComponent( item.videoId ) + '?' + query( params );
+			return 'https://player.vimeo.com/video/' + encodeURIComponent( item.videoId ) + '?' + query( params ) + ( item.start ? '#t=' + item.start + 's' : '' );
 		},
 
 		playEmbed( i ) {
@@ -1143,6 +1169,16 @@
 			// Leave arrow, Home and End keys to a focused video (seeking), and
 			// browser shortcuts such as Alt+Left (Back) to the browser.
 			if ( ! this.options.keyboard || event.target.closest( 'video' ) || event.altKey || event.ctrlKey || event.metaKey ) {
+				return;
+			}
+			// While zoomed, the arrow keys look around the image (as dragging does).
+			const pan = { ArrowLeft: [ 1, 0 ], ArrowRight: [ -1, 0 ], ArrowUp: [ 0, 1 ], ArrowDown: [ 0, -1 ] }[ event.key ];
+			if ( pan && this.zoomState.scale > 1 ) {
+				event.preventDefault();
+				this.zoomState.x += pan[ 0 ] * 80;
+				this.zoomState.y += pan[ 1 ] * 80;
+				this.clampZoom();
+				this.applyZoom( true );
 				return;
 			}
 			switch ( event.key ) {
