@@ -16,6 +16,25 @@
 
 	const VERSION = '1.1.1';
 
+	// Built-in English labels. Any label missing from Foldbox.defaults.labels or
+	// options.labels falls back to these.
+	const LABELS = {
+		dialog: 'Gallery',
+		close: 'Close',
+		prev: 'Previous',
+		next: 'Next',
+		zoomIn: 'Zoom in',
+		zoomOut: 'Zoom out',
+		fullscreen: 'Fullscreen',
+		exitFullscreen: 'Exit fullscreen',
+		play: 'Start slideshow',
+		pause: 'Pause slideshow',
+		download: 'Download',
+		playVideo: 'Play video',
+		counter: '%1 / %2',
+		error: 'This item could not be loaded.',
+	};
+
 	const DEFAULTS = {
 		index: 0,
 		loop: true,
@@ -44,22 +63,7 @@
 		youtubeThumbnails: true, // Fetch the thumbnail from i.ytimg.com when no thumb/poster is given.
 		youtubeParams: { rel: 0 },
 		vimeoParams: {},
-		labels: {
-			dialog: 'Gallery',
-			close: 'Close',
-			prev: 'Previous',
-			next: 'Next',
-			zoomIn: 'Zoom in',
-			zoomOut: 'Zoom out',
-			fullscreen: 'Fullscreen',
-			exitFullscreen: 'Exit fullscreen',
-			play: 'Start slideshow',
-			pause: 'Pause slideshow',
-			download: 'Download',
-			playVideo: 'Play video',
-			counter: '%1 / %2',
-			error: 'This item could not be loaded.',
-		},
+		labels: Object.assign( {}, LABELS ),
 		onOpen: null,
 		onChange: null,
 		onClose: null,
@@ -234,6 +238,7 @@
 		this.options = Object.assign( {}, DEFAULTS, options || {} );
 		this.options.labels = Object.assign(
 			{},
+			LABELS,
 			DEFAULTS.labels,
 			( options && options.labels ) || {}
 		);
@@ -261,18 +266,34 @@
 			if ( openInstance ) {
 				openInstance.close( true );
 			}
+			this.lastFocus = document.activeElement;
+
+			// Register as the open gallery only once it is built. If building
+			// throws, undo what was done so the next open() still works.
+			let locked = false;
+			try {
+				this.build();
+				this.lockScroll();
+				locked = true;
+				this.bind();
+
+				const start = Math.min(
+					Math.max( parseInt( this.options.index, 10 ) || 0, 0 ),
+					this.items.length - 1
+				);
+				this.goTo( start, true );
+			} catch ( error ) {
+				this.unbind();
+				if ( locked ) {
+					this.unlockScroll();
+				}
+				if ( this.root && this.root.parentNode ) {
+					this.root.parentNode.removeChild( this.root );
+				}
+				throw error;
+			}
 			openInstance = this;
 			this.isOpen = true;
-			this.lastFocus = document.activeElement;
-			this.build();
-			this.lockScroll();
-			this.bind();
-
-			const start = Math.min(
-				Math.max( parseInt( this.options.index, 10 ) || 0, 0 ),
-				this.items.length - 1
-			);
-			this.goTo( start, true );
 
 			const self = this;
 			window.requestAnimationFrame( function () {
@@ -1171,6 +1192,11 @@
 		play() {
 			if ( this.timer || this.items.length < 2 ) {
 				return this;
+			}
+			// Without loop the slideshow would stop at once on the last slide;
+			// start again from the first instead.
+			if ( ! this.options.loop && this.index >= this.items.length - 1 ) {
+				this.goTo( 0 );
 			}
 			const self = this;
 			this.root.classList.add( 'is-playing' );
