@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.2 – 2026-11-21
+
+### Changes
+- Fix release race, skip install scripts, RTL slides, cross-origin downloads (#44)
+- Add light and auto themes (#37)
+- Batch position reads in Grid.filter() to avoid a layout per card (#33)
+- Fix YouTube Error 153, focus loss on slide change, modifier keys and more (#29)
+- Size media to the slide instead of 100vh; leave Home/End to a focused video (#21)
+- Fix focus in hidden slides, modifier clicks in bind(), and related a11y bugs (#16)
+- Fix caption XSS via bind(), unsafe download URLs, and gesture/grid bugs (#8)
+- Foldbox 1.0.0: lightbox and filterable grid for photos and videos
+
 ## 1.1.1 – 2026-11-19
 
 ### Changes
