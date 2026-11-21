@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 – 2026-11-21
+
+### Changes
+- Failed images keep a zoom button that does nothing and a download link to the broken file (#62)
+- Start times in YouTube and Vimeo links are dropped (#61)
+- Zoomed images can't be panned with the keyboard (#60)
+
 ## 1.1.2 – 2026-11-21
 
 ### Changes
