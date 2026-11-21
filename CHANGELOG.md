@@ -1,10 +1,36 @@
 # Changelog
 
-## Unreleased
+## 1.1.1 – 2026-11-19
+
+### Changes
+- Download button navigates away for files on another domain (#43)
+- Gallery is blank after the first slide on right-to-left pages (#42)
+
+## 1.1.0 – 2026-11-19
+
+### Changes
+- PRs should not commit dist/ or CHANGELOG.md (#38)
+- Built-in light and auto (system) themes (#36)
+
+## 1.0.4 – 2026-11-19
+
+### Changed
+- `Grid.filter()` reads all card positions before starting animations instead of forcing a layout per card, so filtering large grids is several times faster. (#32)
+
+## 1.0.3 – 2026-11-20
 
 ### Fixed
 - Images, videos and video posters are sized to their slide, so they are no longer cut off while a phone's address bar is showing or when the caption is long. (#17)
 - Home and End in a focused video seek within the video instead of switching slides. (#18)
+- YouTube videos play on sites that send `Referrer-Policy: no-referrer` instead of showing Error 153. (#22)
+- Focus stays in the gallery when the slide holding it is left, and moves to the player when a video starts. (#23)
+- Arrow, Home and End keys with Alt, Ctrl or Cmd are left to the browser, so Back and Forward shortcuts work. (#24)
+- `data-download="false"` hides the download button for that link. (#25)
+- An unknown `type` or `data-type` falls back to detecting the type from the URL. (#26)
+- `src` can be a `URL` object. (#27)
+- Re-filtering the grid during a fade-out no longer shows cards twice. (#28)
+
+Thanks to @deshabhishek007 for reporting and fixing these.
 
 ## 1.0.2 – 2026-11-20
 

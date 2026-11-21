@@ -1,5 +1,5 @@
 /*!
- * Foldbox 1.0.2 – lightbox and filterable grid for photos and videos.
+ * Foldbox 1.1.1 – lightbox and filterable grid for photos and videos.
  * https://github.com/wpgenius/foldbox
  * (c) WPGenius. Released under the MIT License.
  */
@@ -14,7 +14,7 @@
 } )( typeof self !== 'undefined' ? self : this, function () {
 	'use strict';
 
-	const VERSION = '1.0.2';
+	const VERSION = '1.1.1';
 
 	const DEFAULTS = {
 		index: 0,
@@ -22,6 +22,7 @@
 		animation: 'slide', // 'slide' or 'fade'.
 		speed: 400,
 		origin: null, // Element the gallery opens from (zoom-in effect).
+		theme: 'dark', // 'dark', 'light' or 'auto' (follows the system setting).
 		className: '',
 		counter: true,
 		captions: true,
@@ -163,11 +164,16 @@
 	 */
 	function normalize( raw, options ) {
 		const item = Object.assign( {}, typeof raw === 'string' ? { src: raw } : raw );
+		if ( item.src ) {
+			item.src = String( item.src ); // Accept URL objects.
+		}
 		const src = item.src || '';
 		let m;
 
-		// A youtube/vimeo type without a video ID can't be embedded; detect from the URL instead.
+		// Unknown types, and a youtube/vimeo type without a video ID, can't be
+		// shown as such; detect the type from the URL instead.
 		if (
+			( item.type && [ 'image', 'video', 'youtube', 'vimeo' ].indexOf( item.type ) === -1 ) ||
 			( item.type === 'youtube' && ! item.videoId && ! YOUTUBE.test( src ) ) ||
 			( item.type === 'vimeo' && ! item.videoId && ! VIMEO.test( src ) )
 		) {
@@ -291,6 +297,9 @@
 				'aria-label': L.dialog,
 				tabindex: '-1',
 			} );
+			if ( o.theme === 'light' || o.theme === 'auto' ) {
+				root.classList.add( 'foldbox--' + o.theme );
+			}
 			if ( o.className ) {
 				root.className += ' ' + o.className;
 			}
@@ -532,6 +541,9 @@
 			if ( ! changed ) {
 				return this;
 			}
+			// The slide being left turns inert (or loses its player), so focus
+			// inside it would drop to <body>; keep it in the dialog instead.
+			const hadFocus = index !== previous && this.slides[ previous ] && this.slides[ previous ].contains( document.activeElement );
 			if ( this.slides[ previous ] ) {
 				this.leaveSlide( previous );
 			}
@@ -549,6 +561,9 @@
 					self.load( i );
 				}
 			} );
+			if ( hadFocus ) {
+				this.root.focus( { preventScroll: true } );
+			}
 
 			this.track.style.transition = instant ? 'none' : '';
 			if ( this.options.animation !== 'fade' ) {
@@ -640,6 +655,15 @@
 				this.buttons.download.hidden = ! url;
 				if ( url ) {
 					this.buttons.download.href = url;
+					// Browsers ignore `download` for other origins and would navigate
+					// the page to the file; open those in a new tab instead.
+					if ( new URL( url, document.baseURI ).origin !== window.location.origin ) {
+						this.buttons.download.target = '_blank';
+						this.buttons.download.rel = 'noopener';
+					} else {
+						this.buttons.download.removeAttribute( 'target' );
+						this.buttons.download.removeAttribute( 'rel' );
+					}
 				} else {
 					this.buttons.download.removeAttribute( 'href' );
 				}
@@ -768,11 +792,19 @@
 				title: item.title || item.alt || this.options.labels.playVideo,
 				allow: 'autoplay; fullscreen; picture-in-picture; encrypted-media',
 				allowfullscreen: '',
+				// YouTube needs the referrer (Error 153 without it), even on sites
+				// that set Referrer-Policy: no-referrer. Sends the origin only.
+				referrerpolicy: 'strict-origin-when-cross-origin',
 			} );
 			const holder = el( 'div', 'foldbox__embed' );
 			holder.appendChild( frame );
+			// The play button is about to be removed; hand its focus to the player.
+			const hadFocus = slide.contains( document.activeElement );
 			slide.innerHTML = '';
 			slide.appendChild( holder );
+			if ( hadFocus ) {
+				frame.focus();
+			}
 			slide.setAttribute( 'data-playing', '1' );
 		},
 
@@ -1087,8 +1119,9 @@
 				this.trapFocus( event );
 				return;
 			}
-			// Leave arrow, Home and End keys to a focused video (seeking).
-			if ( ! this.options.keyboard || event.target.closest( 'video' ) ) {
+			// Leave arrow, Home and End keys to a focused video (seeking), and
+			// browser shortcuts such as Alt+Left (Back) to the browser.
+			if ( ! this.options.keyboard || event.target.closest( 'video' ) || event.altKey || event.ctrlKey || event.metaKey ) {
 				return;
 			}
 			switch ( event.key ) {
@@ -1339,8 +1372,24 @@
 			};
 			const items = this.items();
 			const o = this.options;
+			const stopAnimations = function () {
+				items.forEach( function ( item ) {
+					if ( typeof item.getAnimations === 'function' ) {
+						item.getAnimations().forEach( function ( animation ) {
+							animation.cancel();
+						} );
+					}
+				} );
+			};
+
+			// Drop ghosts still fading out from an earlier filter, so a card
+			// shown again isn't on screen twice.
+			Array.prototype.forEach.call( this.grid.querySelectorAll( ':scope > .foldbox-ghost' ), function ( ghost ) {
+				ghost.remove();
+			} );
 
 			if ( instant || reducedMotion() || typeof this.grid.animate !== 'function' ) {
+				stopAnimations();
 				items.forEach( function ( item ) {
 					item.hidden = ! matches( item );
 				} );
@@ -1357,13 +1406,7 @@
 			} );
 			// Positions above are where cards are on screen now. Stop animations
 			// from an earlier filter so the new layout is measured without them.
-			items.forEach( function ( item ) {
-				if ( typeof item.getAnimations === 'function' ) {
-					item.getAnimations().forEach( function ( animation ) {
-						animation.cancel();
-					} );
-				}
-			} );
+			stopAnimations();
 
 			const ghosts = [];
 			items.forEach( function ( item ) {
@@ -1386,6 +1429,16 @@
 
 			items.forEach( function ( item ) {
 				item.hidden = ! matches( item );
+			} );
+
+			// Read every new position before appending ghosts or starting any
+			// animation: each animate() call invalidates style, so reading in
+			// between would force a layout per card.
+			const after = new Map();
+			items.forEach( function ( item ) {
+				if ( ! item.hidden ) {
+					after.set( item, item.getBoundingClientRect() );
+				}
 			} );
 
 			ghosts.forEach( function ( ghost ) {
@@ -1418,7 +1471,7 @@
 					);
 					return;
 				}
-				const now = item.getBoundingClientRect();
+				const now = after.get( item );
 				const dx = old.left - now.left;
 				const dy = old.top - now.top;
 				if ( dx || dy ) {
@@ -1472,7 +1525,7 @@
 					caption: a.getAttribute( 'data-caption' ) || '',
 					type: a.getAttribute( 'data-type' ) || undefined,
 					poster: a.getAttribute( 'data-poster' ) || undefined,
-					download: a.hasAttribute( 'data-download' ) ? a.getAttribute( 'data-download' ) : undefined,
+					download: a.getAttribute( 'data-download' ) === 'false' ? false : a.hasAttribute( 'data-download' ) ? a.getAttribute( 'data-download' ) : undefined,
 				};
 			} );
 			open(
