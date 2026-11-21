@@ -24,8 +24,11 @@
 			thumb: pic( 152, 200, 200 ),
 			caption: '<strong>MP4 video</strong> · native player',
 		},
+		// Own thumb and poster, so nothing is fetched from i.ytimg.com before play.
 		youtube: {
 			src: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+			thumb: pic( 1074, 200, 200 ),
+			poster: pic( 1074, 1200, 800 ),
 			caption: '<strong>YouTube</strong> · loads when you press play',
 		},
 		vimeo: {
@@ -91,7 +94,7 @@
 	const mediaRow = document.getElementById( 'media-row' );
 	if ( mediaRow ) {
 		const labels = [ 'Image', 'MP4', 'YouTube', 'Vimeo', 'Image' ];
-		const thumbs = [ pic( 1025, 300, 300 ), pic( 152, 300, 300 ), 'https://i.ytimg.com/vi/aqz-KE-bpKQ/hqdefault.jpg', pic( 180, 300, 300 ), pic( 1084, 300, 300 ) ];
+		const thumbs = [ pic( 1025, 300, 300 ), pic( 152, 300, 300 ), pic( 1074, 300, 300 ), pic( 180, 300, 300 ), pic( 1084, 300, 300 ) ];
 		media.forEach( function ( item, i ) {
 			const btn = document.createElement( 'button' );
 			btn.type = 'button';
